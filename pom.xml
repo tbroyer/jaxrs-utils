@@ -10,6 +10,7 @@
   <modules>
     <module>resteasy-testing</module>
     <module>resteasy-client-okhttp</module>
+    <module>jaxrs-webhook</module>
   </modules>
   <packaging>pom</packaging>
 
@@ -47,6 +48,11 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>javax.ws.rs</groupId>
+        <artifactId>javax.ws.rs-api</artifactId>
+        <version>2.0.1</version>
+      </dependency>
       <dependency>
         <groupId>org.jboss.resteasy</groupId>
         <artifactId>resteasy-bom</artifactId>
