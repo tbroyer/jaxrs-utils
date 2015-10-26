@@ -10,7 +10,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>jaxrs-webhook</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.1</version>
 
   <name>Webhook filters for JAX-RS</name>
   <description>Provides client and server filters to call and implement webhooks</description>
