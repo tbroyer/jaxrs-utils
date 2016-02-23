@@ -10,6 +10,7 @@
   <modules>
     <module>resteasy-testing</module>
     <module>resteasy-client-okhttp</module>
+    <module>resteasy-client-okhttp3</module>
     <module>jaxrs-webhook</module>
   </modules>
   <packaging>pom</packaging>
