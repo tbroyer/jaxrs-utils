@@ -20,6 +20,7 @@ import java.security.Principal;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriBuilder;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.spi.ResteasyDeployment;
@@ -42,7 +43,7 @@ import org.junit.rules.ExternalResource;
       new TestSecurityFilter("username", SecurityContext.FORM_AUTH));
 
   Response response = resteasy.getClient()
-      .target(UriBuilder.fromUri(resteasy.getBaseUri()).path(DummyResource.class))
+      .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
       .request().get();
   // ...
 }
@@ -53,6 +54,7 @@ public class InProcessResteasy extends ExternalResource {
   private static final URI DEFAULT_BASE_URI = URI.create("http://localhost/");
 
   private final URI baseUri;
+  private final UriBuilder baseUriBuilder;
 
   private ResteasyDeployment deployment;
   private Client client;
@@ -63,10 +65,15 @@ public class InProcessResteasy extends ExternalResource {
 
   public InProcessResteasy(URI baseUri) {
     this.baseUri = baseUri;
+    this.baseUriBuilder = UriBuilder.fromUri(baseUri);
   }
 
   public final URI getBaseUri() {
     return baseUri;
+  }
+
+  public final UriBuilder getBaseUriBuilder() {
+    return baseUriBuilder.clone();
   }
 
   public final ResteasyDeployment getDeployment() {
