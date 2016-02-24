@@ -26,7 +26,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class WebhookSignatureFilterTest {
     resteasy.getDeployment().getProviderFactory().register(new net.ltgt.jaxrs.webhook.server.WebhookSignatureFilter(SECRET));
     Response response = resteasy.getClient()
         .register(new net.ltgt.jaxrs.webhook.client.WebhookSignatureFilter(SECRET))
-        .target(UriBuilder.fromResource(DummyResource.class))
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
         .request()
         .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
