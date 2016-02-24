@@ -25,7 +25,7 @@
     <dependency>
       <groupId>net.ltgt.jaxrs</groupId>
       <artifactId>resteasy-testing</artifactId>
-      <version>0.1</version>
+      <version>0.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
