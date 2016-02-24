@@ -30,7 +30,7 @@ import org.junit.rules.ExternalResource;
  *
  * <p>Usage:
  * <pre><code>
-&#064;Rule InProcessResteasy resteasy = new InProcessResteasy();
+&#064;Rule public InProcessResteasy resteasy = new InProcessResteasy();
 
 &#064;Before public void setup() {
   resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
@@ -41,8 +41,9 @@ import org.junit.rules.ExternalResource;
   resteasy.getDeployment().getProviderFactory().register(
       new TestSecurityFilter("username", SecurityContext.FORM_AUTH));
 
-  Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class)
-      .requerst().get();
+  Response response = resteasy.getClient()
+      .target(UriBuilder.fromUri(resteasy.getBaseUri()).path(DummyResource.class))
+      .request().get();
   // ...
 }
  * </code></pre>
