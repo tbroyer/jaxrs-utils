@@ -131,7 +131,7 @@ public class OkHttpClientEngine implements ClientHttpEngine {
 
       @Override
       public void writeTo(BufferedSink sink) throws IOException {
-        sink.write(buffer, buffer.size());
+        buffer.copyTo(sink.buffer(), 0, buffer.size());
       }
     };
   }

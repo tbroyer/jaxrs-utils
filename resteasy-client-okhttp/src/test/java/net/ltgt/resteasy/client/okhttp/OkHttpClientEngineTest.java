@@ -38,6 +38,7 @@ import org.junit.rules.Timeout;
 
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 import com.squareup.okhttp.mockwebserver.Dispatcher;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
@@ -100,6 +101,17 @@ public class OkHttpClientEngineTest {
         return chain.proceed(chain.request().newBuilder().addHeader(INJECTED_HEADER_NAME, HEADER_VALUE).build());
       }
     });
+    // Ensures the request body can be read several times
+    // Specifically in the case of HttpLoggingInterceptor,
+    // which reads it once before handing it down the chain.
+    HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
+      @Override
+      public void log(String s) {
+        // discard the log
+      }
+    });
+    httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+    okHttpClient.networkInterceptors().add(httpLoggingInterceptor);
 
     client = new ResteasyClientBuilder()
         .httpEngine(new OkHttpClientEngine(okHttpClient))
