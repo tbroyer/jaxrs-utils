@@ -36,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
@@ -46,6 +47,7 @@ public class OkHttpClientEngineTest {
 
   private static final byte[] PAYLOAD = "This is the request payload".getBytes(StandardCharsets.UTF_8);
   static final String HEADER_NAME = "X-Whatever";
+  static final String INJECTED_HEADER_NAME = "X-Injected";
   static final String HEADER_VALUE = "some header";
 
   // In case an error is thrown in the MockWebServer, so clients don't block infinitely.
@@ -57,6 +59,7 @@ public class OkHttpClientEngineTest {
     mockServer.setDispatcher(new Dispatcher() {
       @Override
       public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
+        assertThat(request.getHeader(INJECTED_HEADER_NAME)).isEqualTo(HEADER_VALUE);
         switch (request.getPath()) {
           case "/simple":
             return new MockResponse()
@@ -82,9 +85,18 @@ public class OkHttpClientEngineTest {
   private Client client;
 
   @Before public void configureClient() {
-    okHttpClient = new OkHttpClient();
+    okHttpClient = new OkHttpClient.Builder()
+        .addInterceptor(
+            // Ensures that this OkHttpClient is correctly used by the tests
+            new Interceptor() {
+              @Override
+              public okhttp3.Response intercept(Chain chain) throws IOException {
+                return chain.proceed(chain.request().newBuilder().addHeader(INJECTED_HEADER_NAME, HEADER_VALUE).build());
+              }
+            })
+        .build();
     client = new ResteasyClientBuilder()
-        .httpEngine(new OkHttpClientEngine(new OkHttpClient()))
+        .httpEngine(new OkHttpClientEngine(okHttpClient))
         .build();
   }
   @After public void closeClient() {
