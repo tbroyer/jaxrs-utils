@@ -45,6 +45,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <errorprone.version>2.0.19</errorprone.version>
   </properties>
 
   <dependencyManagement>
@@ -97,7 +99,21 @@
           <showWarnings>true</showWarnings>
           <showDeprecation>true</showDeprecation>
           <failOnWarning>true</failOnWarning>
+          <compilerId>javac-with-errorprone</compilerId>
+          <forceJavacCompilerUse>true</forceJavacCompilerUse>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-compiler-javac-errorprone</artifactId>
+            <version>2.8.1</version>
+          </dependency>
+          <dependency>
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_core</artifactId>
+            <version>${errorprone.version}</version>
+          </dependency>
+        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -192,6 +208,16 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>jdk7</id>
+      <activation>
+        <jdk>[1.7,1.8)</jdk>
+      </activation>
+      <properties>
+        <!-- 2.0.5 is the last version supporting JDK 7 -->
+        <errorprone.version>2.0.5</errorprone.version>
+      </properties>
+    </profile>
     <profile>
       <id>release</id>
       <build>
