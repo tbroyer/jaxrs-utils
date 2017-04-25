@@ -17,11 +17,9 @@ package net.ltgt.resteasy.testing;
 
 import java.net.URI;
 import java.security.Principal;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
-
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 import org.junit.rules.ExternalResource;
@@ -30,23 +28,24 @@ import org.junit.rules.ExternalResource;
  * Creates an in-process Resteasy container and client.
  *
  * <p>Usage:
+ *
  * <pre><code>
-&#064;Rule public InProcessResteasy resteasy = new InProcessResteasy();
-
-&#064;Before public void setup() {
-  resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
-}
-
-&#064;Test public void testMethod() {
-  // Setup authenticated user as "username"
-  resteasy.getDeployment().getProviderFactory().register(
-      new TestSecurityFilter("username", SecurityContext.FORM_AUTH));
-
-  Response response = resteasy.getClient()
-      .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
-      .request().get();
-  // ...
-}
+ * &#064;Rule public InProcessResteasy resteasy = new InProcessResteasy();
+ *
+ * &#064;Before public void setup() {
+ *   resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
+ * }
+ *
+ * &#064;Test public void testMethod() {
+ *   // Setup authenticated user as "username"
+ *   resteasy.getDeployment().getProviderFactory().register(
+ *       new TestSecurityFilter("username", SecurityContext.FORM_AUTH));
+ *
+ *   Response response = resteasy.getClient()
+ *       .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
+ *       .request().get();
+ *   // ...
+ * }
  * </code></pre>
  */
 public class InProcessResteasy extends ExternalResource {
@@ -92,8 +91,9 @@ public class InProcessResteasy extends ExternalResource {
 
     deployment.start();
 
-    ResteasyClientBuilder builder = new ResteasyClientBuilder()
-        .httpEngine(new InProcessClientHttpEngine(deployment.getDispatcher(), baseUri));
+    ResteasyClientBuilder builder =
+        new ResteasyClientBuilder()
+            .httpEngine(new InProcessClientHttpEngine(deployment.getDispatcher(), baseUri));
     configureClient(builder);
     client = builder.build();
   }

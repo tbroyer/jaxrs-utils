@@ -19,26 +19,36 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.nio.file.attribute.UserPrincipal;
 import java.util.Arrays;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
 import org.junit.Rule;
 import org.junit.Test;
 
 public class TestSecurityFilterTest {
   @Rule public InProcessResteasy resteasy = new InProcessResteasy();
 
-  @Test public void test() {
+  @Test
+  public void test() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(Resource.class);
-    resteasy.getDeployment().getProviderFactory().register(
-        new TestSecurityFilter(new CustomUserPrincipal(), Arrays.asList("roleA", "roleC"), true, "the authentication scheme"));
+    resteasy
+        .getDeployment()
+        .getProviderFactory()
+        .register(
+            new TestSecurityFilter(
+                new CustomUserPrincipal(),
+                Arrays.asList("roleA", "roleC"),
+                true,
+                "the authentication scheme"));
 
-    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(Resource.class))
-        .request().get();
+    Response response =
+        resteasy
+            .getClient()
+            .target(resteasy.getBaseUriBuilder().path(Resource.class))
+            .request()
+            .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.readEntity(String.class)).isEqualTo("OK");

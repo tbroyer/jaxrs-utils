@@ -18,7 +18,6 @@ package net.ltgt.jaxrs.webhook;
 import static org.assertj.core.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -26,27 +25,32 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
+import net.ltgt.resteasy.testing.InProcessResteasy;
 import org.junit.Rule;
 import org.junit.Test;
-
-import net.ltgt.resteasy.testing.InProcessResteasy;
 
 public class WebhookSignatureFilterTest {
 
   private static final String SECRET = "This is a secret";
-  private static final byte[] PAYLOAD = "This is the request payload".getBytes(StandardCharsets.UTF_8);
+  private static final byte[] PAYLOAD =
+      "This is the request payload".getBytes(StandardCharsets.UTF_8);
 
   @Rule public InProcessResteasy resteasy = new InProcessResteasy();
 
-  @Test public void testWebhookSignature() {
+  @Test
+  public void testWebhookSignature() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
-    resteasy.getDeployment().getProviderFactory().register(new net.ltgt.jaxrs.webhook.server.WebhookSignatureFilter(SECRET));
-    Response response = resteasy.getClient()
-        .register(new net.ltgt.jaxrs.webhook.client.WebhookSignatureFilter(SECRET))
-        .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
-        .request()
-        .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+    resteasy
+        .getDeployment()
+        .getProviderFactory()
+        .register(new net.ltgt.jaxrs.webhook.server.WebhookSignatureFilter(SECRET));
+    Response response =
+        resteasy
+            .getClient()
+            .register(new net.ltgt.jaxrs.webhook.client.WebhookSignatureFilter(SECRET))
+            .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
+            .request()
+            .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     byte[] payload = response.readEntity(byte[].class);

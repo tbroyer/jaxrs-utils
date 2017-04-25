@@ -18,7 +18,6 @@ package net.ltgt.jaxrs.webhook.server;
 import static org.assertj.core.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -27,119 +26,146 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.junit.Rule;
-import org.junit.Test;
-
 import net.ltgt.jaxrs.webhook.Util;
 import net.ltgt.resteasy.testing.InProcessResteasy;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class WebhookSignatureFilterTest {
 
   private static final byte[] SECRET = "This is a secret".getBytes(StandardCharsets.UTF_8);
-  private static final byte[] PAYLOAD = "This is the request payload".getBytes(StandardCharsets.UTF_8);
+  private static final byte[] PAYLOAD =
+      "This is the request payload".getBytes(StandardCharsets.UTF_8);
   private static final String SIGNATURE = "3daba1f18d85905076a8ed72caf13565ece571fb";
 
   @Rule public InProcessResteasy resteasy = new InProcessResteasy();
 
-  @Test public void testValidSignatureWithSecretFromResource() {
-    resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResourceWithWebhookSecret.class);
+  @Test
+  public void testValidSignatureWithSecretFromResource() {
+    resteasy
+        .getDeployment()
+        .getRegistry()
+        .addPerRequestResource(DummyResourceWithWebhookSecret.class);
     resteasy.getDeployment().getProviderFactory().register(WebhookSignatureFilter.class);
 
-    Response response = resteasy.getClient()
-        .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
-        .request()
-        .header(Util.HEADER, Util.PREFIX + SIGNATURE)
-        .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+    Response response =
+        resteasy
+            .getClient()
+            .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
+            .request()
+            .header(Util.HEADER, Util.PREFIX + SIGNATURE)
+            .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     byte[] payload = response.readEntity(byte[].class);
     assertThat(payload).isEqualTo(PAYLOAD);
   }
 
-  @Test public void testValidSignatureWithFixedSecret() {
+  @Test
+  public void testValidSignatureWithFixedSecret() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
     resteasy.getDeployment().getProviderFactory().register(new WebhookSignatureFilter(SECRET));
 
-    Response response = resteasy.getClient()
-        .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
-        .request()
-        .header(Util.HEADER, Util.PREFIX + SIGNATURE)
-        .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+    Response response =
+        resteasy
+            .getClient()
+            .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
+            .request()
+            .header(Util.HEADER, Util.PREFIX + SIGNATURE)
+            .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     byte[] payload = response.readEntity(byte[].class);
     assertThat(payload).isEqualTo(PAYLOAD);
   }
 
-  @Test public void testValidSignatureWithGetSecretOverride() {
+  @Test
+  public void testValidSignatureWithGetSecretOverride() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
-    resteasy.getDeployment().getProviderFactory().register(new WebhookSignatureFilter() {
-      @Override
-      protected byte[] getSecret(ContainerRequestContext requestContext) {
-        return SECRET;
-      }
-    });
+    resteasy
+        .getDeployment()
+        .getProviderFactory()
+        .register(
+            new WebhookSignatureFilter() {
+              @Override
+              protected byte[] getSecret(ContainerRequestContext requestContext) {
+                return SECRET;
+              }
+            });
 
-    Response response = resteasy.getClient()
-        .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
-        .request()
-        .header(Util.HEADER, Util.PREFIX + SIGNATURE)
-        .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+    Response response =
+        resteasy
+            .getClient()
+            .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
+            .request()
+            .header(Util.HEADER, Util.PREFIX + SIGNATURE)
+            .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     byte[] payload = response.readEntity(byte[].class);
     assertThat(payload).isEqualTo(PAYLOAD);
   }
 
-  @Test public void testMissingHeader() {
+  @Test
+  public void testMissingHeader() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
     resteasy.getDeployment().getProviderFactory().register(new WebhookSignatureFilter(SECRET));
 
-    Response response = resteasy.getClient()
-        .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
-        .request()
-        .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+    Response response =
+        resteasy
+            .getClient()
+            .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
+            .request()
+            .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
   }
 
-  @Test public void testMultipleHeaders() {
+  @Test
+  public void testMultipleHeaders() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
     resteasy.getDeployment().getProviderFactory().register(new WebhookSignatureFilter(SECRET));
 
-    Response response = resteasy.getClient()
-        .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
-        .request()
-        .header(Util.HEADER, Util.PREFIX + SIGNATURE)
-        .header(Util.HEADER, Util.PREFIX + SIGNATURE)
-        .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+    Response response =
+        resteasy
+            .getClient()
+            .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
+            .request()
+            .header(Util.HEADER, Util.PREFIX + SIGNATURE)
+            .header(Util.HEADER, Util.PREFIX + SIGNATURE)
+            .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
   }
 
-  @Test public void testInvalidHeader() {
+  @Test
+  public void testInvalidHeader() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
     resteasy.getDeployment().getProviderFactory().register(new WebhookSignatureFilter(SECRET));
 
-    Response response = resteasy.getClient()
-        .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
-        .request()
-        .header(Util.HEADER, "md5=" + SIGNATURE)
-        .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+    Response response =
+        resteasy
+            .getClient()
+            .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
+            .request()
+            .header(Util.HEADER, "md5=" + SIGNATURE)
+            .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
   }
 
-  @Test public void testInvalidSignature() {
+  @Test
+  public void testInvalidSignature() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
     resteasy.getDeployment().getProviderFactory().register(new WebhookSignatureFilter(SECRET));
 
-    Response response = resteasy.getClient()
-        .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
-        .request()
-        .header(Util.HEADER, Util.PREFIX + "bad516")
-        .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+    Response response =
+        resteasy
+            .getClient()
+            .target(resteasy.getBaseUriBuilder().path(DummyResource.class))
+            .request()
+            .header(Util.HEADER, Util.PREFIX + "bad516")
+            .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     byte[] payload = response.readEntity(byte[].class);
@@ -159,7 +185,8 @@ public class WebhookSignatureFilterTest {
 
   @Path("/")
   @Webhook
-  public static class DummyResourceWithWebhookSecret extends DummyResource implements HasWebhookSecret {
+  public static class DummyResourceWithWebhookSecret extends DummyResource
+      implements HasWebhookSecret {
     @Override
     public byte[] getWebhookSecret() {
       return SECRET;

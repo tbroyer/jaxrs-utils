@@ -22,14 +22,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.NewCookie;
-
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
 import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
@@ -62,7 +60,8 @@ public class InProcessClientHttpEngine implements ClientHttpEngine {
   }
 
   private MockHttpRequest createRequest(ClientInvocation request) {
-    MockHttpRequest mockRequest = MockHttpRequest.create(request.getMethod(), request.getUri(), baseUri);
+    MockHttpRequest mockRequest =
+        MockHttpRequest.create(request.getMethod(), request.getUri(), baseUri);
 
     if (request.getEntity() != null) {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -83,8 +82,8 @@ public class InProcessClientHttpEngine implements ClientHttpEngine {
     return mockRequest;
   }
 
-  private void copyCookies(MockHttpRequest mockRequest,
-      MultivaluedMap<String, String> requestHeaders) {
+  private void copyCookies(
+      MockHttpRequest mockRequest, MultivaluedMap<String, String> requestHeaders) {
     List<String> cookieHeaders = requestHeaders.get(HttpHeaders.COOKIE);
     if (cookieHeaders == null) {
       return;
@@ -97,36 +96,40 @@ public class InProcessClientHttpEngine implements ClientHttpEngine {
     }
   }
 
-  private ClientResponse createResponse(final ClientInvocation request, final MockHttpResponse mockResponse) {
-    ClientResponse response = new ClientResponse(request.getClientConfiguration()) {
-      private InputStream inputStream;
+  private ClientResponse createResponse(
+      final ClientInvocation request, final MockHttpResponse mockResponse) {
+    ClientResponse response =
+        new ClientResponse(request.getClientConfiguration()) {
+          private InputStream inputStream;
 
-      @Override
-      protected InputStream getInputStream() {
-        if (inputStream == null) {
-          inputStream = new ByteArrayInputStream(mockResponse.getOutput());
-        }
-        return inputStream;
-      }
+          @Override
+          protected InputStream getInputStream() {
+            if (inputStream == null) {
+              inputStream = new ByteArrayInputStream(mockResponse.getOutput());
+            }
+            return inputStream;
+          }
 
-      @Override
-      protected void setInputStream(InputStream is) {
-        inputStream = is;
-      }
+          @Override
+          protected void setInputStream(InputStream is) {
+            inputStream = is;
+          }
 
-      @Override
-      public void releaseConnection() throws IOException {
-        // no-op
-      }
-    };
+          @Override
+          public void releaseConnection() throws IOException {
+            // no-op
+          }
+        };
 
     response.setStatus(mockResponse.getStatus());
-    response.setHeaders(transformHeaders(mockResponse.getOutputHeaders(), mockResponse.getNewCookies()));
+    response.setHeaders(
+        transformHeaders(mockResponse.getOutputHeaders(), mockResponse.getNewCookies()));
 
     return response;
   }
 
-  private MultivaluedMap<String, String> transformHeaders(MultivaluedMap<String, Object> outputHeaders, List<NewCookie> newCookies) {
+  private MultivaluedMap<String, String> transformHeaders(
+      MultivaluedMap<String, Object> outputHeaders, List<NewCookie> newCookies) {
     MultivaluedMap<String, String> headers = new CaseInsensitiveMap<>();
     for (Map.Entry<String, List<Object>> header : outputHeaders.entrySet()) {
       for (Object value : header.getValue()) {
@@ -134,7 +137,8 @@ public class InProcessClientHttpEngine implements ClientHttpEngine {
       }
     }
     for (NewCookie newCookie : newCookies) {
-      headers.add(HttpHeaders.SET_COOKIE, dispatcher.getProviderFactory().toHeaderString(newCookie));
+      headers.add(
+          HttpHeaders.SET_COOKIE, dispatcher.getProviderFactory().toHeaderString(newCookie));
     }
     return headers;
   }

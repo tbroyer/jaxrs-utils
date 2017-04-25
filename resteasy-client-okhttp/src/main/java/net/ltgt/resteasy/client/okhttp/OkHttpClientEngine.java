@@ -15,39 +15,36 @@
  */
 package net.ltgt.resteasy.client.okhttp;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.MultivaluedMap;
-
-import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
-import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
-import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
-import org.jboss.resteasy.util.CaseInsensitiveMap;
-
 import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.MultivaluedMap;
 import okio.Buffer;
 import okio.BufferedSink;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
+import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
+import org.jboss.resteasy.util.CaseInsensitiveMap;
 
 /**
  * Implementation of {@link ClientHttpEngine} based on OkHttp.
  *
  * <p>Usage:
+ *
  * <pre><code>
-new ResteasyClientBuilder()
- .httpEngine(new OkHttpClientEngine(okHttpClient))
- .build()
+ * new ResteasyClientBuilder()
+ *     .httpEngine(new OkHttpClientEngine(okHttpClient))
+ *     .build()
  * </code></pre>
  *
  * @author Thomas Broyer <t.broyer@ltgt.net>
@@ -89,9 +86,10 @@ public class OkHttpClientEngine implements ClientHttpEngine {
   }
 
   private Request createRequest(ClientInvocation request) {
-    Request.Builder builder = new Request.Builder()
-        .method(request.getMethod(), createRequestBody(request))
-        .url(request.getUri().toString());
+    Request.Builder builder =
+        new Request.Builder()
+            .method(request.getMethod(), createRequestBody(request))
+            .url(request.getUri().toString());
     for (Map.Entry<String, List<String>> header : request.getHeaders().asMap().entrySet()) {
       String headerName = header.getKey();
       for (String headerValue : header.getValue()) {
@@ -116,7 +114,8 @@ public class OkHttpClientEngine implements ClientHttpEngine {
     }
 
     javax.ws.rs.core.MediaType mediaType = request.getHeaders().getMediaType();
-    final MediaType contentType = (mediaType == null) ? null : MediaType.parse(mediaType.toString());
+    final MediaType contentType =
+        (mediaType == null) ? null : MediaType.parse(mediaType.toString());
 
     return new RequestBody() {
       @Override
@@ -137,50 +136,51 @@ public class OkHttpClientEngine implements ClientHttpEngine {
   }
 
   private ClientResponse createResponse(ClientInvocation request, final Response response) {
-    ClientResponse clientResponse = new ClientResponse(request.getClientConfiguration()) {
-      private InputStream stream;
+    ClientResponse clientResponse =
+        new ClientResponse(request.getClientConfiguration()) {
+          private InputStream stream;
 
-      @Override
-      protected InputStream getInputStream() {
-        if (stream == null) {
-          try {
-            stream = response.body().byteStream();
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
-        return stream;
-      }
-
-      @Override
-      protected void setInputStream(InputStream is) {
-        stream = is;
-      }
-
-      @Override
-      public void releaseConnection() throws IOException {
-        // Stream might have been entirely replaced, so we need to close it independently from response.body()
-        Throwable primaryExc = null;
-        try {
-          if (stream != null) {
-            stream.close();
-          }
-        } catch (Throwable t) {
-          primaryExc = t;
-          throw t;
-        } finally {
-          if (primaryExc != null) {
-            try {
-              response.body().close();
-            } catch (Throwable suppressedExc) {
-              primaryExc.addSuppressed(suppressedExc);
+          @Override
+          protected InputStream getInputStream() {
+            if (stream == null) {
+              try {
+                stream = response.body().byteStream();
+              } catch (IOException e) {
+                throw new RuntimeException(e);
+              }
             }
-          } else {
-            response.body().close();
+            return stream;
           }
-        }
-      }
-    };
+
+          @Override
+          protected void setInputStream(InputStream is) {
+            stream = is;
+          }
+
+          @Override
+          public void releaseConnection() throws IOException {
+            // Stream might have been entirely replaced, so we need to close it independently from response.body()
+            Throwable primaryExc = null;
+            try {
+              if (stream != null) {
+                stream.close();
+              }
+            } catch (Throwable t) {
+              primaryExc = t;
+              throw t;
+            } finally {
+              if (primaryExc != null) {
+                try {
+                  response.body().close();
+                } catch (Throwable suppressedExc) {
+                  primaryExc.addSuppressed(suppressedExc);
+                }
+              } else {
+                response.body().close();
+              }
+            }
+          }
+        };
 
     clientResponse.setStatus(response.code());
     clientResponse.setHeaders(transformHeaders(response.headers()));

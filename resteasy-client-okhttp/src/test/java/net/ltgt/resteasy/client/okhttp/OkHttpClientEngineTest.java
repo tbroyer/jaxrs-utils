@@ -17,9 +17,15 @@ package net.ltgt.resteasy.client.okhttp;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.squareup.okhttp.Interceptor;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.logging.HttpLoggingInterceptor;
+import com.squareup.okhttp.mockwebserver.Dispatcher;
+import com.squareup.okhttp.mockwebserver.MockResponse;
+import com.squareup.okhttp.mockwebserver.MockWebServer;
+import com.squareup.okhttp.mockwebserver.RecordedRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -28,7 +34,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.WriterInterceptor;
 import javax.ws.rs.ext.WriterInterceptorContext;
-
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.junit.After;
 import org.junit.Before;
@@ -36,17 +41,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.logging.HttpLoggingInterceptor;
-import com.squareup.okhttp.mockwebserver.Dispatcher;
-import com.squareup.okhttp.mockwebserver.MockResponse;
-import com.squareup.okhttp.mockwebserver.RecordedRequest;
-import com.squareup.okhttp.mockwebserver.MockWebServer;
-
 public class OkHttpClientEngineTest {
 
-  private static final byte[] PAYLOAD = "This is the request payload".getBytes(StandardCharsets.UTF_8);
+  private static final byte[] PAYLOAD =
+      "This is the request payload".getBytes(StandardCharsets.UTF_8);
   static final String HEADER_NAME = "X-Whatever";
   static final String INJECTED_HEADER_NAME = "X-Injected";
   static final String HEADER_VALUE = "some header";
@@ -56,73 +54,90 @@ public class OkHttpClientEngineTest {
 
   @Rule public MockWebServer mockServer = new MockWebServer();
 
-  @Before public void configureServer() {
-    mockServer.setDispatcher(new Dispatcher() {
-      @Override
-      public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
-        assertThat(request.getHeader(INJECTED_HEADER_NAME)).isEqualTo(HEADER_VALUE);
-        switch (request.getPath()) {
-          case "/simple":
-            return new MockResponse()
-                .setResponseCode(Response.Status.NOT_FOUND.getStatusCode())
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN)
-                .setHeader(HEADER_NAME, HEADER_VALUE)
-                .setBody("Not found");
-          case "/writerInterceptor":
-            assertThat(request.getBody().readByteArray()).isEqualTo(PAYLOAD);
-            // fall-through
-          case "/requestHeader":
-            assertThat(request.getHeader(HEADER_NAME)).isEqualTo(HEADER_VALUE);
-            return new MockResponse()
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN)
-                .setBody(request.getHeader(HEADER_NAME));
-        }
-        throw new AssertionError("Unexpected request: " + request);
-      }
-    });
+  @Before
+  public void configureServer() {
+    mockServer.setDispatcher(
+        new Dispatcher() {
+          @Override
+          public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
+            assertThat(request.getHeader(INJECTED_HEADER_NAME)).isEqualTo(HEADER_VALUE);
+            switch (request.getPath()) {
+              case "/simple":
+                return new MockResponse()
+                    .setResponseCode(Response.Status.NOT_FOUND.getStatusCode())
+                    .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN)
+                    .setHeader(HEADER_NAME, HEADER_VALUE)
+                    .setBody("Not found");
+              case "/writerInterceptor":
+                assertThat(request.getBody().readByteArray()).isEqualTo(PAYLOAD);
+                // fall-through
+              case "/requestHeader":
+                assertThat(request.getHeader(HEADER_NAME)).isEqualTo(HEADER_VALUE);
+                return new MockResponse()
+                    .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN)
+                    .setBody(request.getHeader(HEADER_NAME));
+            }
+            throw new AssertionError("Unexpected request: " + request);
+          }
+        });
   }
 
   private static final Object TAG = new Object();
   private OkHttpClient okHttpClient;
   private Client client;
 
-  @Before public void configureClient() {
+  @Before
+  public void configureClient() {
     okHttpClient = new OkHttpClient();
-    okHttpClient.interceptors().add(new Interceptor() {
-      @Override
-      public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
-        return chain.proceed(chain.request().newBuilder().tag(TAG).build());
-      }
-    });
+    okHttpClient
+        .interceptors()
+        .add(
+            new Interceptor() {
+              @Override
+              public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
+                return chain.proceed(chain.request().newBuilder().tag(TAG).build());
+              }
+            });
     // Ensures that this OkHttpClient is correctly used by the tests
-    okHttpClient.interceptors().add(new Interceptor() {
-      @Override
-      public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
-        return chain.proceed(chain.request().newBuilder().addHeader(INJECTED_HEADER_NAME, HEADER_VALUE).build());
-      }
-    });
+    okHttpClient
+        .interceptors()
+        .add(
+            new Interceptor() {
+              @Override
+              public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
+                return chain.proceed(
+                    chain
+                        .request()
+                        .newBuilder()
+                        .addHeader(INJECTED_HEADER_NAME, HEADER_VALUE)
+                        .build());
+              }
+            });
     // Ensures the request body can be read several times
     // Specifically in the case of HttpLoggingInterceptor,
     // which reads it once before handing it down the chain.
-    HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
-      @Override
-      public void log(String s) {
-        // discard the log
-      }
-    });
+    HttpLoggingInterceptor httpLoggingInterceptor =
+        new HttpLoggingInterceptor(
+            new HttpLoggingInterceptor.Logger() {
+              @Override
+              public void log(String s) {
+                // discard the log
+              }
+            });
     httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
     okHttpClient.networkInterceptors().add(httpLoggingInterceptor);
 
-    client = new ResteasyClientBuilder()
-        .httpEngine(new OkHttpClientEngine(okHttpClient))
-        .build();
+    client = new ResteasyClientBuilder().httpEngine(new OkHttpClientEngine(okHttpClient)).build();
   }
-  @After public void closeClient() {
+
+  @After
+  public void closeClient() {
     client.close();
     okHttpClient.cancel(TAG);
   }
 
-  @Test public void simpleRequest() {
+  @Test
+  public void simpleRequest() {
     Response response = client.target(mockServer.url("/simple").uri()).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NOT_FOUND);
@@ -131,27 +146,35 @@ public class OkHttpClientEngineTest {
     assertThat(response.readEntity(String.class)).isEqualTo("Not found");
   }
 
-  @Test public void requestHeader() {
-    Response response = client.target(mockServer.url("/requestHeader").uri()).request()
-        .header(HEADER_NAME, HEADER_VALUE)
-        .get();
+  @Test
+  public void requestHeader() {
+    Response response =
+        client
+            .target(mockServer.url("/requestHeader").uri())
+            .request()
+            .header(HEADER_NAME, HEADER_VALUE)
+            .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.readEntity(String.class)).isEqualTo(HEADER_VALUE);
   }
 
-  @Test public void simpleWriterInterceptors() {
-    Response response = client.target(mockServer.url("/writerInterceptor").uri())
-        .register(new WriterInterceptor() {
-          @Override
-          public void aroundWriteTo(WriterInterceptorContext context)
-              throws IOException, WebApplicationException {
-            context.getHeaders().putSingle(HEADER_NAME, HEADER_VALUE);
-            context.proceed();
-          }
-        })
-        .request()
-        .post(Entity.json(PAYLOAD));
+  @Test
+  public void simpleWriterInterceptors() {
+    Response response =
+        client
+            .target(mockServer.url("/writerInterceptor").uri())
+            .register(
+                new WriterInterceptor() {
+                  @Override
+                  public void aroundWriteTo(WriterInterceptorContext context)
+                      throws IOException, WebApplicationException {
+                    context.getHeaders().putSingle(HEADER_NAME, HEADER_VALUE);
+                    context.proceed();
+                  }
+                })
+            .request()
+            .post(Entity.json(PAYLOAD));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.readEntity(String.class)).isEqualTo(HEADER_VALUE);

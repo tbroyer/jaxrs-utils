@@ -16,13 +16,13 @@
 package net.ltgt.jaxrs.webhook.server;
 
 /**
- * Interface implemented by a JAX-RS resource to provide the webhook secret to the
- * {@link WebhookSignatureFilter}.
+ * Interface implemented by a JAX-RS resource to provide the webhook secret to the {@link
+ * WebhookSignatureFilter}.
  */
 public interface HasWebhookSecret {
   /**
-   * Returns the webhook secret to use to compute the payload signature (before comparing it
-   * with the signature received in the {@code X-Hub-Signature} header.)
+   * Returns the webhook secret to use to compute the payload signature (before comparing it with
+   * the signature received in the {@code X-Hub-Signature} header.)
    */
   byte[] getWebhookSecret();
 }

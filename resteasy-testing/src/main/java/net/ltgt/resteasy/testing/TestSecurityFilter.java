@@ -22,11 +22,9 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
-
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.SecurityContext;
-
 import org.jboss.resteasy.plugins.server.embedded.SimplePrincipal;
 
 public class TestSecurityFilter implements ContainerRequestFilter {
@@ -43,7 +41,8 @@ public class TestSecurityFilter implements ContainerRequestFilter {
     this(new SimplePrincipal(Objects.requireNonNull(username)), null, false, authenticationScheme);
   }
 
-  public TestSecurityFilter(String username, Collection<String> roles, String authenticationScheme) {
+  public TestSecurityFilter(
+      String username, Collection<String> roles, String authenticationScheme) {
     this(new SimplePrincipal(Objects.requireNonNull(username)), roles, false, authenticationScheme);
   }
 
@@ -51,15 +50,18 @@ public class TestSecurityFilter implements ContainerRequestFilter {
     this(new SimplePrincipal(Objects.requireNonNull(username)), null, secure, authenticationScheme);
   }
 
-  public TestSecurityFilter(String username, Collection<String> roles, boolean secure, String authenticationScheme) {
-    this(new SimplePrincipal(Objects.requireNonNull(username)), roles, secure, authenticationScheme);
+  public TestSecurityFilter(
+      String username, Collection<String> roles, boolean secure, String authenticationScheme) {
+    this(
+        new SimplePrincipal(Objects.requireNonNull(username)), roles, secure, authenticationScheme);
   }
 
   public TestSecurityFilter(Principal userPrincipal, String authenticationScheme) {
     this(userPrincipal, null, false, authenticationScheme);
   }
 
-  public TestSecurityFilter(Principal userPrincipal, Collection<String> roles, String authenticationScheme) {
+  public TestSecurityFilter(
+      Principal userPrincipal, Collection<String> roles, String authenticationScheme) {
     this(userPrincipal, roles, false, authenticationScheme);
   }
 
@@ -67,9 +69,15 @@ public class TestSecurityFilter implements ContainerRequestFilter {
     this(userPrincipal, null, secure, authenticationScheme);
   }
 
-  public TestSecurityFilter(Principal userPrincipal, Collection<String> roles, boolean secure, String authenticationScheme) {
+  public TestSecurityFilter(
+      Principal userPrincipal,
+      Collection<String> roles,
+      boolean secure,
+      String authenticationScheme) {
     if (userPrincipal != null) {
-      Objects.requireNonNull(authenticationScheme, "authenticationScheme may not be null if there's an authenticated user");
+      Objects.requireNonNull(
+          authenticationScheme,
+          "authenticationScheme may not be null if there's an authenticated user");
     } else {
       if (authenticationScheme != null) {
         throw new IllegalArgumentException(
@@ -88,26 +96,27 @@ public class TestSecurityFilter implements ContainerRequestFilter {
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
-    requestContext.setSecurityContext(new SecurityContext() {
-      @Override
-      public Principal getUserPrincipal() {
-        return userPrincipal;
-      }
+    requestContext.setSecurityContext(
+        new SecurityContext() {
+          @Override
+          public Principal getUserPrincipal() {
+            return userPrincipal;
+          }
 
-      @Override
-      public boolean isUserInRole(String role) {
-        return roles.contains(role);
-      }
+          @Override
+          public boolean isUserInRole(String role) {
+            return roles.contains(role);
+          }
 
-      @Override
-      public boolean isSecure() {
-        return secure;
-      }
+          @Override
+          public boolean isSecure() {
+            return secure;
+          }
 
-      @Override
-      public String getAuthenticationScheme() {
-        return authenticationScheme;
-      }
-    });
+          @Override
+          public String getAuthenticationScheme() {
+            return authenticationScheme;
+          }
+        });
   }
 }

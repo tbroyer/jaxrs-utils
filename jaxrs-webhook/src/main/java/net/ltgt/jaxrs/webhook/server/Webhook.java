@@ -19,7 +19,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import javax.ws.rs.NameBinding;
 
 /**
@@ -27,8 +26,7 @@ import javax.ws.rs.NameBinding;
  *
  * <p>The resource will then be filtered by {@link WebhookSignatureFilter}.
  */
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(value = RetentionPolicy.RUNTIME)
 @NameBinding
-public @interface Webhook {
-}
+public @interface Webhook {}

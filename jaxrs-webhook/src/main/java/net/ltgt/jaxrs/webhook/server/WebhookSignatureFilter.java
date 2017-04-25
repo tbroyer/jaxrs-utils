@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-
 import javax.annotation.Priority;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -31,17 +30,16 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
-
 import net.ltgt.jaxrs.webhook.Util;
 
 /**
- * Validates an incoming {@code X-Hub-Signature} request header against the request body
- * and a shared secret.
+ * Validates an incoming {@code X-Hub-Signature} request header against the request body and a
+ * shared secret.
  *
- * <p>The secret can either be given to the filter constructor, or retrieved from the
- * {@link UriInfo#getMatchedResources() matched resource} which must then implement
- * {@link HasWebhookSecret}. Alternatively, the filter can be subclassed and the
- * {@link #getSecret(ContainerRequestContext)} method overridden.
+ * <p>The secret can either be given to the filter constructor, or retrieved from the {@link
+ * UriInfo#getMatchedResources() matched resource} which must then implement {@link
+ * HasWebhookSecret}. Alternatively, the filter can be subclassed and the {@link
+ * #getSecret(ContainerRequestContext)} method overridden.
  *
  * <p>The filter will only apply to resources annotated with {@link Webhook}.
  */
@@ -53,11 +51,12 @@ public class WebhookSignatureFilter implements ContainerRequestFilter {
   private final byte[] secret;
 
   /**
-   * Constructs a {@link WebhookSignatureFilter} that will ask the
-   * {@link UriInfo#getMatchedResources() matched resource} for the secret.
+   * Constructs a {@link WebhookSignatureFilter} that will ask the {@link
+   * UriInfo#getMatchedResources() matched resource} for the secret.
    *
    * <p>Matched resources <strong>MUST</strong> implement {@link HasWebhookSecret} or the filter
-   * will error out with a {@link ClassCastException} (leading to an internal server error response).
+   * will error out with a {@link ClassCastException} (leading to an internal server error
+   * response).
    */
   public WebhookSignatureFilter() {
     this.secret = null;
@@ -67,6 +66,7 @@ public class WebhookSignatureFilter implements ContainerRequestFilter {
    * Constructs a {@link WebhookSignatureFilter} with a fixed secret.
    *
    * <p>The secret's UTF-8 bytes will actually be used as the secret. This is equivalent to calling:
+   *
    * <pre><code>
    *   new WebhookSignatureFilter(secret.getBytes(StandardCharsets.UTF-8))
    * </code></pre>
@@ -78,9 +78,7 @@ public class WebhookSignatureFilter implements ContainerRequestFilter {
     this.secret = secret.getBytes(StandardCharsets.UTF_8);
   }
 
-  /**
-   * Constructs a {@link WebhookSignatureFilter} with a fixed secret.
-   */
+  /** Constructs a {@link WebhookSignatureFilter} with a fixed secret. */
   public WebhookSignatureFilter(byte[] secret) {
     if (secret.length == 0) {
       throw new IllegalArgumentException("secret must not be empty");
@@ -93,14 +91,15 @@ public class WebhookSignatureFilter implements ContainerRequestFilter {
    * with the one sent in the {@code X-Hub-Signature} request header).
    *
    * <p>The default implementation will either return the fixed secret if one has been set through
-   * the constructor, or cast the {@link UriInfo#getMatchedResources() matched resource} to
-   * {@link HasWebhookSecret} and call {@link HasWebhookSecret#getWebhookSecret()}.
+   * the constructor, or cast the {@link UriInfo#getMatchedResources() matched resource} to {@link
+   * HasWebhookSecret} and call {@link HasWebhookSecret#getWebhookSecret()}.
    */
   protected byte[] getSecret(ContainerRequestContext requestContext) {
     if (secret != null) {
       return secret;
     }
-    return ((HasWebhookSecret) requestContext.getUriInfo().getMatchedResources().get(0)).getWebhookSecret();
+    return ((HasWebhookSecret) requestContext.getUriInfo().getMatchedResources().get(0))
+        .getWebhookSecret();
   }
 
   @Override
