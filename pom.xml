@@ -46,7 +46,7 @@
     <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <errorprone.version>2.0.19</errorprone.version>
+    <errorprone.version>2.0.21</errorprone.version>
   </properties>
 
   <dependencyManagement>
