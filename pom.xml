@@ -228,16 +228,12 @@
           <plugin>
             <groupId>com.coveo</groupId>
             <artifactId>fmt-maven-plugin</artifactId>
-            <version>1.7.0</version>
+            <version>1.8.0</version>
             <executions>
               <execution>
-                <phase>verify</phase>
                 <goals>
-                  <goal>format</goal>
+                  <goal>check</goal>
                 </goals>
-                <configuration>
-                  <validateOnly>true</validateOnly>
-                </configuration>
               </execution>
             </executions>
             <dependencies>
